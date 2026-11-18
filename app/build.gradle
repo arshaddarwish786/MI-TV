@@ -1,0 +1,43 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.arshad.mitvremote'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.arshad.mitvremote'
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName '1.0'
+    }
+
+    signingConfigs {
+        // A fixed key, so each new build installs as an update over the previous one.
+        stable {
+            storeFile file('remote.keystore')
+            storePassword 'mitvremote'
+            keyAlias 'remote'
+            keyPassword 'mitvremote'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.stable
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}

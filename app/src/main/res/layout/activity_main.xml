@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="24dp">
+
+        <!-- Status bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <View
+                android:id="@+id/dot"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:background="@drawable/dot" />
+
+            <TextView
+                android:id="@+id/status"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="10dp"
+                android:text="Not connected"
+                android:textColor="@color/icon"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/btnTv"
+                style="@style/TextKey"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_weight="0"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:text="Choose TV"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <!-- Power / input / settings -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/power"
+                style="@style/Key"
+                android:background="@drawable/btn_power"
+                android:contentDescription="Power"
+                android:src="@drawable/ic_power" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <ImageButton
+                android:id="@+id/input"
+                style="@style/Key"
+                android:contentDescription="Input"
+                android:src="@drawable/ic_input" />
+
+            <ImageButton
+                android:id="@+id/settings"
+                style="@style/Key"
+                android:layout_marginStart="14dp"
+                android:contentDescription="Settings"
+                android:src="@drawable/ic_settings" />
+        </LinearLayout>
+
+        <!-- D-pad -->
+        <FrameLayout
+            android:layout_width="270dp"
+            android:layout_height="270dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="22dp"
+            android:background="@drawable/dpad_bg">
+
+            <ImageButton
+                android:id="@+id/up"
+                style="@style/Arrow"
+                android:layout_gravity="top|center_horizontal"
+                android:contentDescription="Up"
+                android:src="@drawable/ic_up" />
+
+            <ImageButton
+                android:id="@+id/down"
+                style="@style/Arrow"
+                android:layout_gravity="bottom|center_horizontal"
+                android:contentDescription="Down"
+                android:src="@drawable/ic_down" />
+
+            <ImageButton
+                android:id="@+id/left"
+                style="@style/Arrow"
+                android:layout_gravity="start|center_vertical"
+                android:contentDescription="Left"
+                android:src="@drawable/ic_left" />
+
+            <ImageButton
+                android:id="@+id/right"
+                style="@style/Arrow"
+                android:layout_gravity="end|center_vertical"
+                android:contentDescription="Right"
+                android:src="@drawable/ic_right" />
+
+            <Button
+                android:id="@+id/ok"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_gravity="center"
+                android:background="@drawable/btn_ok"
+                android:stateListAnimator="@null"
+                android:text="OK"
+                android:textColor="@color/icon"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+
+        <!-- Back / Home / Menu -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:orientation="horizontal">
+
+            <FrameLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1">
+                <ImageButton
+                    android:id="@+id/back"
+                    style="@style/Key"
+                    android:layout_gravity="center"
+                    android:contentDescription="Back"
+                    android:src="@drawable/ic_back" />
+            </FrameLayout>
+
+            <FrameLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1">
+                <ImageButton
+                    android:id="@+id/home"
+                    style="@style/Key"
+                    android:layout_gravity="center"
+                    android:contentDescription="Home"
+                    android:src="@drawable/ic_home" />
+            </FrameLayout>
+
+            <FrameLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1">
+                <ImageButton
+                    android:id="@+id/menu"
+                    style="@style/Key"
+                    android:layout_gravity="center"
+                    android:contentDescription="Menu"
+                    android:src="@drawable/ic_menu" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <!-- Volume / mute / channel -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <Button android:id="@+id/volUp" style="@style/Rocker" android:text="+" />
+                <TextView style="@style/Label" android:text="VOL" />
+                <Button android:id="@+id/volDown" style="@style/Rocker" android:text="−" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+
+                <ImageButton
+                    android:id="@+id/mute"
+                    style="@style/Key"
+                    android:contentDescription="Mute"
+                    android:src="@drawable/ic_mute" />
+
+                <Button
+                    android:id="@+id/btnNumbers"
+                    style="@style/TextKey"
+                    android:layout_width="64dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="0"
+                    android:layout_marginTop="14dp"
+                    android:text="123"
+                    android:textSize="15sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <Button android:id="@+id/chUp" style="@style/Rocker" android:text="+" />
+                <TextView style="@style/Label" android:text="CH" />
+                <Button android:id="@+id/chDown" style="@style/Rocker" android:text="−" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Number pad (hidden until 123 is tapped) -->
+        <LinearLayout
+            android:id="@+id/numpad"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                <Button android:id="@+id/n1" style="@style/TextKey" android:text="1" />
+                <Button android:id="@+id/n2" style="@style/TextKey" android:text="2" />
+                <Button android:id="@+id/n3" style="@style/TextKey" android:text="3" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                <Button android:id="@+id/n4" style="@style/TextKey" android:text="4" />
+                <Button android:id="@+id/n5" style="@style/TextKey" android:text="5" />
+                <Button android:id="@+id/n6" style="@style/TextKey" android:text="6" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                <Button android:id="@+id/n7" style="@style/TextKey" android:text="7" />
+                <Button android:id="@+id/n8" style="@style/TextKey" android:text="8" />
+                <Button android:id="@+id/n9" style="@style/TextKey" android:text="9" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" android:layout_margin="5dp" />
+                <Button android:id="@+id/n0" style="@style/TextKey" android:text="0" />
+                <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" android:layout_margin="5dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Media -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:orientation="horizontal">
+
+            <FrameLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1">
+                <ImageButton
+                    android:id="@+id/rew"
+                    style="@style/Key"
+                    android:layout_gravity="center"
+                    android:contentDescription="Rewind"
+                    android:src="@drawable/ic_rew" />
+            </FrameLayout>
+
+            <FrameLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1">
+                <ImageButton
+                    android:id="@+id/play"
+                    style="@style/Key"
+                    android:layout_gravity="center"
+                    android:contentDescription="Play or pause"
+                    android:src="@drawable/ic_play" />
+            </FrameLayout>
+
+            <FrameLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1">
+                <ImageButton
+                    android:id="@+id/ff"
+                    style="@style/Key"
+                    android:layout_gravity="center"
+                    android:contentDescription="Fast forward"
+                    android:src="@drawable/ic_ff" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <!-- Apps -->
+        <TextView style="@style/Label" android:layout_marginTop="20dp" android:text="APPS" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button android:id="@+id/appYoutube" style="@style/TextKey" android:text="YouTube" android:textSize="15sp" />
+            <Button android:id="@+id/appNetflix" style="@style/TextKey" android:text="Netflix" android:textSize="15sp" />
+            <Button android:id="@+id/appPrime" style="@style/TextKey" android:text="Prime" android:textSize="15sp" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
