@@ -22,6 +22,9 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -65,7 +68,15 @@ public class MainActivity extends Activity {
         status = findViewById(R.id.status);
         dot = findViewById(R.id.dot);
 
-        key(R.id.power, KeyEvent.KEYCODE_POWER, false);
+        View power = findViewById(R.id.power);
+        power.setOnClickListener(v -> {
+            v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+            powerPressed();
+        });
+        power.setOnLongClickListener(v -> {
+            showMacDialog(false);
+            return true;
+        });
         key(R.id.input, KeyEvent.KEYCODE_TV_INPUT, false);
         key(R.id.settings, KeyEvent.KEYCODE_SETTINGS, false);
         key(R.id.up, KeyEvent.KEYCODE_DPAD_UP, true);
@@ -220,10 +231,14 @@ public class MainActivity extends Activity {
     // ---------------- Connection (runs on the net thread) ----------------
 
     private boolean ensureConnected() {
+        return ensureConnected(false);
+    }
+
+    private boolean ensureConnected(boolean quiet) {
         AtvRemote r = remote;
         if (r != null && r.isOpen()) return true;
         if (host == null || pairingActive) return false;
-        setStatus(YELLOW, "Connecting to " + tvName + "…");
+        if (!quiet) setStatus(YELLOW, "Connecting to " + tvName + "…");
         try {
             if (id == null) id = ClientIdentity.loadOrCreate(getFilesDir());
             AtvRemote fresh = new AtvRemote(id, reason ->
@@ -236,7 +251,7 @@ public class MainActivity extends Activity {
             beginPairing();
             return false;
         } catch (Exception e) {
-            setStatus(RED, "Can't reach " + tvName + ". Is it on, and on the same Wi‑Fi?");
+            if (!quiet) setStatus(RED, "Can't reach " + tvName + ". If it's off, tap ⏻ to wake it.");
             return false;
         }
     }
@@ -267,6 +282,156 @@ public class MainActivity extends Activity {
         AtvPairing p = pairing;
         pairing = null;
         if (p != null) p.close();
+    }
+
+    // ---------------- Power / Wake-on-LAN ----------------
+
+    private volatile boolean waking;
+
+    /** TV on (reachable): send POWER. TV in standby: wake it over the network. */
+    private void powerPressed() {
+        if (host == null) {
+            showPicker();
+            return;
+        }
+        net.execute(() -> {
+            AtvRemote r = remote;
+            if (r != null && r.isOpen()) {
+                try {
+                    r.sendKey(KeyEvent.KEYCODE_POWER);
+                    return;
+                } catch (Exception e) {
+                    dropConnection();
+                }
+            }
+            // Quick check: maybe it's on and we just weren't connected
+            if (ensureConnected(true)) {
+                try {
+                    remote.sendKey(KeyEvent.KEYCODE_POWER);
+                } catch (Exception ignored) {
+                }
+                return;
+            }
+            if (pairingActive) return;
+            String mac = prefs.getString("mac", null);
+            if (mac == null) {
+                ui.post(() -> showMacDialog(true));
+                return;
+            }
+            wake(mac);
+        });
+    }
+
+    /** Runs on the net thread: sends magic packets, then waits for the TV to come up. */
+    private void wake(String mac) {
+        if (waking) return;
+        waking = true;
+        try {
+            setStatus(YELLOW, "Waking " + tvName + "…");
+            byte[] packet = magicPacket(mac);
+            long until = System.currentTimeMillis() + 30000;
+            int round = 0;
+            while (System.currentTimeMillis() < until) {
+                if (round < 6) sendMagic(packet);
+                round++;
+                sleep(2500);
+                if (ensureConnected(true)) {
+                    setStatus(GREEN, "Connected to " + tvName);
+                    return;
+                }
+            }
+            setStatus(RED, "The TV didn't wake up. Long-press ⏻ for help.");
+            ui.post(() -> Toast.makeText(this,
+                    "On the TV turn on Wake on WLAN (Developer options), then try again.",
+                    Toast.LENGTH_LONG).show());
+        } finally {
+            waking = false;
+        }
+    }
+
+    private void sendMagic(byte[] packet) {
+        try (DatagramSocket sock = new DatagramSocket()) {
+            sock.setBroadcast(true);
+            List<InetAddress> targets = new ArrayList<>();
+            targets.add(InetAddress.getByName("255.255.255.255"));
+            try {
+                InetAddress tv = InetAddress.getByName(host);
+                targets.add(tv);
+                if (tv instanceof Inet4Address) {
+                    byte[] b = tv.getAddress();
+                    b[3] = (byte) 255; // home networks are almost always /24
+                    targets.add(InetAddress.getByAddress(b));
+                }
+            } catch (Exception ignored) {
+            }
+            for (InetAddress a : targets) {
+                for (int port : new int[]{9, 7}) {
+                    try {
+                        sock.send(new DatagramPacket(packet, packet.length, a, port));
+                    } catch (Exception ignored) {
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    static byte[] magicPacket(String mac) {
+        String hex = mac.replaceAll("[^0-9A-Fa-f]", "");
+        byte[] m = new byte[6];
+        for (int i = 0; i < 6; i++) m[i] = (byte) Integer.parseInt(hex.substring(2 * i, 2 * i + 2), 16);
+        byte[] p = new byte[6 + 16 * 6];
+        for (int i = 0; i < 6; i++) p[i] = (byte) 0xFF;
+        for (int i = 0; i < 16; i++) System.arraycopy(m, 0, p, 6 + i * 6, 6);
+        return p;
+    }
+
+    static String normalizeMac(String s) {
+        String hex = s == null ? "" : s.replaceAll("[^0-9A-Fa-f]", "").toUpperCase();
+        if (hex.length() != 12) return null;
+        StringBuilder b = new StringBuilder();
+        for (int i = 0; i < 12; i += 2) {
+            if (i > 0) b.append(':');
+            b.append(hex, i, i + 2);
+        }
+        return b.toString();
+    }
+
+    private static void sleep(long ms) {
+        try {
+            Thread.sleep(ms);
+        } catch (InterruptedException ignored) {
+        }
+    }
+
+    private void showMacDialog(boolean thenWake) {
+        if (isFinishing()) return;
+        EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
+                | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+        input.setHint("e.g. A4:5E:60:12:34:56");
+        String saved = prefs.getString("mac", null);
+        if (saved != null) input.setText(saved);
+        new AlertDialog.Builder(this, android.R.style.Theme_Material_Dialog_Alert)
+                .setTitle("Turn the TV on from your phone")
+                .setMessage("A TV in standby switches its Wi‑Fi off, so it must be set up once to listen for a wake-up signal:\n\n"
+                        + "1. On the TV, open Settings → Device Preferences (or System) → About, and tap Build (Android TV OS build) 7 times to unlock Developer options.\n"
+                        + "2. Go back, open Developer options, and turn on Wake on WLAN (and Wake on LAN if shown).\n"
+                        + "3. In About → Status (or Network & Internet → your Wi‑Fi), note the Wi‑Fi MAC address and type it below.")
+                .setView(wrap(input))
+                .setPositiveButton(thenWake ? "Save and turn on" : "Save", (d, w) -> {
+                    String mac = normalizeMac(input.getText().toString());
+                    if (mac == null) {
+                        Toast.makeText(this, "That doesn't look like a MAC address (12 letters/numbers).", Toast.LENGTH_LONG).show();
+                        ui.post(() -> showMacDialog(thenWake));
+                        return;
+                    }
+                    prefs.edit().putString("mac", mac).apply();
+                    if (thenWake) net.execute(() -> wake(mac));
+                    else Toast.makeText(this, "Saved. Tap ⏻ when the TV is off to turn it on.", Toast.LENGTH_LONG).show();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     // ---------------- Dialogs ----------------
